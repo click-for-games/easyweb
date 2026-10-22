@@ -1,0 +1,90 @@
+// dataweb - a tiny database for easyweb.
+// Install with:  webhelp install dataweb
+// Use with:      use dataweb
+//
+// Your data is saved in a .ewbdata file next to your app,
+// for example:  notes.eweb  ->  notes.ewbdata
+//
+//   db.set("notes", ["hello"])
+//   db.push("notes", "world")
+//   db.get("notes")
+//   db.all()
+//   db.remove("notes")
+
+var db_file = app_name() + ".ewbdata"
+var db_data = {}
+
+func db_has(key) {
+  let names = keys(db_data)
+  for (let name in names) {
+    if (name == key) {
+      return true
+    }
+  }
+  return false
+}
+
+func db_read() {
+  if (file_exists(db_file)) {
+    let text = read_file(db_file)
+    let parsed = parse_json(text)
+    if (type(parsed) == "object") {
+      db_data = parsed
+    }
+  }
+}
+
+func db_write() {
+  write_file(db_file, json(db_data))
+}
+
+var db = {
+  all: func() {
+    return db_data
+  },
+  get: func(key, fallback) {
+    if (db_has(key)) {
+      return db_data[key]
+    }
+    if (fallback == null) {
+      return null
+    }
+    return fallback
+  },
+  set: func(key, value) {
+    db_data[key] = value
+    db_write()
+    return value
+  },
+  push: func(key, value) {
+    if (!db_has(key)) {
+      db_data[key] = []
+    }
+    db_data[key].push(value)
+    db_write()
+    return db_data[key]
+  },
+  remove: func(key) {
+    if (db_has(key)) {
+      db_data[key] = null
+      db_write()
+      return true
+    }
+    return false
+  },
+  keys: func() {
+    return keys(db_data)
+  },
+  count: func() {
+    return len(db_data)
+  },
+  save: func() {
+    db_write()
+    return true
+  },
+  file: func() {
+    return db_file
+  }
+}
+
+db_read()

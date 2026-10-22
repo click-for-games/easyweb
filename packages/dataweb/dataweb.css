@@ -1,0 +1,16 @@
+/* dataweb - the database panel (optional, only shown if you use the panel) */
+.ew-db-panel {
+  border: 1px solid #2a3142;
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin: 18px 0;
+  font-size: 14px;
+}
+.ew-db-panel h3 {
+  margin: 0 0 8px;
+  font-size: 15px;
+  color: #7cc4ff;
+}
+.ew-db-panel code {
+  color: #fdd835;
+}

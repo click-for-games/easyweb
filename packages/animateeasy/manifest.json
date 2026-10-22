@@ -1,0 +1,8 @@
+{
+  "name": "animateeasy",
+  "version": "1.0.0",
+  "description": "Smooth CSS + JS animations for easyweb pages.",
+  "entry": "animateeasy.eweb",
+  "css": "animateeasy.css",
+  "js": "animateeasy.js"
+}

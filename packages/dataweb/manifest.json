@@ -1,0 +1,8 @@
+{
+  "name": "dataweb",
+  "version": "1.0.0",
+  "description": "A tiny database for easyweb. Saves to appname.ewbdata next to your app.",
+  "entry": "dataweb.eweb",
+  "css": "dataweb.css",
+  "js": "dataweb.js"
+}

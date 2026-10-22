@@ -1,0 +1,18 @@
+// animateeasy - tiny animations that make easyweb pages feel alive.
+// Install with:  webhelp install animateeasy
+// Use with:      use animateeasy
+// Then in your script block:
+//   animate("#box", "fade-in")
+//   animate("#box", "bounce", 1200)
+
+client func animate(sel, name) {
+  addClass(sel, "ew-anim-" + name)
+}
+
+client func animateOut(sel, name) {
+  removeClass(sel, "ew-anim-" + name)
+}
+
+client func animateOnce(sel, name) {
+  addClass(sel, "ew-anim-" + name + "-once")
+}

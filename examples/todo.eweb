@@ -1,0 +1,76 @@
+page "easyweb todo"
+port 8080
+
+// the dataweb package gives us a tiny database
+use dataweb
+
+// the backend - a couple of routes
+route GET "/api/notes" {
+  return db.get("notes", [])
+}
+
+route POST "/api/notes" {
+  let body = req.body
+  let note = body.text
+  if (note == null || note == "") {
+    return { ok: false, error: "please write something first" }
+  }
+  db.push("notes", note)
+  return { ok: true, notes: db.get("notes", []) }
+}
+
+route DELETE "/api/notes" {
+  db.set("notes", [])
+  return { ok: true }
+}
+
+// the page
+ui {
+  <h1>My notes</h1>
+  <input id="note" placeholder="write a note...">
+  <button id="add">Add it</button>
+  <button id="clear">Clear all</button>
+  <ul id="list"></ul>
+  <p id="status"></p>
+}
+
+// the logic
+script {
+  function draw(notes) {
+    var list = document.querySelector("#list")
+    list.innerHTML = ""
+    for (var i = 0; i < notes.length; i++) {
+      var li = document.createElement("li")
+      li.textContent = notes[i]
+      list.appendChild(li)
+    }
+  }
+
+  function load() {
+    get("/api/notes", function(res) {
+      draw(res)
+    })
+  }
+
+  on("#add", "click", function() {
+    var note = val("#note")
+    post("/api/notes", { text: note }, function(res) {
+      if (res.ok) {
+        val("#note", "")
+        draw(res.notes)
+        text("#status", "saved!")
+      } else {
+        text("#status", res.error)
+      }
+    })
+  })
+
+  on("#clear", "click", function() {
+    del("/api/notes", null, function(res) {
+      draw([])
+      text("#status", "cleared")
+    })
+  })
+
+  load()
+}

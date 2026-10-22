@@ -1,0 +1,31 @@
+page "easyweb hello"
+port 8080
+
+// a tiny bit of data for the server
+data {
+  visits: 0
+  name: "easyweb"
+}
+
+// the backend
+route GET "/api/hello" {
+  data.visits = data.visits + 1
+  return { hello: "world", visits: data.visits, name: data.name }
+}
+
+// the page
+ui {
+  <h1>Hello from easyweb!</h1>
+  <p>This page was made with <b>{{ data.name }}</b>.</p>
+  <button id="go">Say hello</button>
+  <pre id="out"></pre>
+}
+
+// the logic
+script {
+  on("#go", "click", function() {
+    get("/api/hello", function(res) {
+      text("#out", json(res))
+    })
+  })
+}

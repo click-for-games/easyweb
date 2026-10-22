@@ -1,0 +1,93 @@
+name: release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: build ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest, macos-latest]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: install mingw (windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          choco install mingw --no-progress -y
+          echo "C:\ProgramData\mingw64\mingw64\bin" >> $env:GITHUB_PATH
+
+      - name: build (linux and mac)
+        if: runner.os != 'Windows'
+        shell: bash
+        run: |
+          mkdir -p dist
+          CORE="src/util.c src/lexer.c src/ast.c src/parser.c src/value.c src/interp.c src/jsgen.c src/kid.c src/render.c src/http.c src/server.c src/pkg.c src/packages.c src/highlight.c src/json.c src/webhelp.c"
+          gcc -O2 -std=c11 -Wall -Wextra -o dist/easyweb $CORE src/main.c -lm
+          gcc -O2 -std=c11 -Wall -Wextra -o dist/webhelp $CORE src/webhelp_main.c -lm
+
+      - name: build (windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path dist | Out-Null
+          $core = @(
+            "src/util.c","src/lexer.c","src/ast.c","src/parser.c","src/value.c",
+            "src/interp.c","src/jsgen.c","src/kid.c","src/render.c","src/http.c",
+            "src/server.c","src/pkg.c","src/packages.c","src/highlight.c",
+            "src/json.c","src/webhelp.c")
+          gcc -O2 -std=c11 -Wall -Wextra -o dist/easyweb.exe @core src/main.c -lws2_32
+          gcc -O2 -std=c11 -Wall -Wextra -o dist/webhelp.exe @core src/webhelp_main.c -lws2_32
+
+      - name: check
+        shell: bash
+        run: |
+          if [ "${{ runner.os }}" = "Windows" ]; then
+            ./dist/easyweb.exe version
+            ./dist/webhelp.exe version
+          else
+            ./dist/easyweb version
+            ./dist/webhelp version
+          fi
+
+      - name: package
+        shell: bash
+        run: |
+          cd dist
+          if [ "${{ runner.os }}" = "Windows" ]; then
+            zip easyweb-windows.zip easyweb.exe webhelp.exe
+          else
+            tar -czf easyweb-${{ runner.os }}.tar.gz easyweb webhelp
+          fi
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: easyweb-${{ matrix.os }}
+          path: dist/*
+
+  release:
+    name: publish release
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: create release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: artifacts/**/*
+          draft: false
+          generate_release_notes: true
