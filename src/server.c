@@ -17,6 +17,7 @@ typedef HANDLE ew_thread_t;
 #define ew_close_socket closesocket
 #define ew_socket SOCKET
 #define EW_INVALID INVALID_SOCKET
+#define EW_SHUT_BOTH SD_BOTH
 #else
 #include <arpa/inet.h>
 #include <netinet/in.h>
@@ -30,6 +31,7 @@ typedef pthread_t ew_thread_t;
 #define ew_close_socket close
 #define ew_socket int
 #define EW_INVALID (-1)
+#define EW_SHUT_BOTH SHUT_RDWR
 #endif
 
 #include <sys/stat.h>
@@ -432,7 +434,7 @@ static void* conn_thread_real(void* arg) {
   http_request_free(&req);
   free(raw);
 
-  shutdown(sock, SD_BOTH);
+  shutdown(sock, EW_SHUT_BOTH);
   ew_close_socket(sock);
   g_active--;
   (void)opts;
@@ -502,7 +504,11 @@ int server_run(ServerOpts* opts) {
 
   for (;;) {
     struct sockaddr_in cli;
+#ifdef _WIN32
     int clen = sizeof(cli);
+#else
+    socklen_t clen = sizeof(cli);
+#endif
     ew_socket c = accept(srv, (struct sockaddr*)&cli, &clen);
     if (c == EW_INVALID) {
       if (errno == EINTR) continue;

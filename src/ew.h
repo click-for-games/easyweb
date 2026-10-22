@@ -4,6 +4,20 @@
 #ifndef EW_H
 #define EW_H
 
+/* ask for the POSIX and BSD parts of the system headers we need,
+   even when the compiler runs in strict ISO C mode */
+#if !defined(_WIN32)
+#if !defined(_DEFAULT_SOURCE)
+#define _DEFAULT_SOURCE 1
+#endif
+#if !defined(_POSIX_C_SOURCE)
+#define _POSIX_C_SOURCE 200809L
+#endif
+#if !defined(_DARWIN_C_SOURCE)
+#define _DARWIN_C_SOURCE 1
+#endif
+#endif
+
 #include <stdarg.h>
 #include <stdbool.h>
 #include <stddef.h>

@@ -58,15 +58,18 @@ jobs:
             ./dist/webhelp version
           fi
 
-      - name: package
+      - name: package (windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          Compress-Archive -Path dist/easyweb.exe,dist/webhelp.exe -DestinationPath dist/easyweb-windows.zip -Force
+
+      - name: package (linux and mac)
+        if: runner.os != 'Windows'
         shell: bash
         run: |
           cd dist
-          if [ "${{ runner.os }}" = "Windows" ]; then
-            zip easyweb-windows.zip easyweb.exe webhelp.exe
-          else
-            tar -czf easyweb-${{ runner.os }}.tar.gz easyweb webhelp
-          fi
+          tar -czf easyweb-${{ runner.os }}.tar.gz easyweb webhelp
 
       - uses: actions/upload-artifact@v4
         with:
